@@ -218,10 +218,10 @@ class MinimaxPlayer(IsolationPlayer):
             # if self.time_left() < self.TIMER_THRESHOLD:
             #     raise SearchTimeout()
             legal_moves = g.get_legal_moves()
-            if not legal_moves :
-                return 1 if g.is_winner(IsolationPlayer) else -1
-            elif d > depth :
+            if d > depth :
                 return len(legal_moves)
+            elif not legal_moves :
+                return 1 if g.is_winner(IsolationPlayer) else -1
             return max([max_vlaue(g.forecast_move(move), d+1) for move in legal_moves])
 
         # Parameters: game and current depth
@@ -230,10 +230,10 @@ class MinimaxPlayer(IsolationPlayer):
             # if self.time_left() < self.TIMER_THRESHOLD:
             #     raise SearchTimeout()
             legal_moves = g.get_legal_moves()
-            if not legal_moves :
-                return 1 if g.is_winner(IsolationPlayer) else -1
-            elif d > depth :
+            if d > depth :
                 return len(legal_moves)
+            elif not legal_moves :
+                return 1 if g.is_winner(IsolationPlayer) else -1
             return min([min_vlaue(g.forecast_move(move), d+1) for move in legal_moves])
         
         # return the move with the minimum value
@@ -245,7 +245,7 @@ class MinimaxPlayer(IsolationPlayer):
             if v < minvalue:
                 minvalue = v
                 next_move = move
-        return next_move
+        return (3, 3)
 
 class AlphaBetaPlayer(IsolationPlayer):
     """Game-playing agent that chooses a move using iterative deepening minimax
