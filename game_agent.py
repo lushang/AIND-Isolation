@@ -4,6 +4,7 @@ and include the results in your report.
 """
 import random
 import numpy
+# import logging
 
 
 class SearchTimeout(Exception):
@@ -213,32 +214,40 @@ class MinimaxPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
+        # logger = logging.getLogger('tcpserver')
+        # logger.warning('depth: %s', depth.search_depth)
+        print(depth)
+
         # Parameters: game g, current depth quota d and minimax index minmax
         # return min/max value of current state
-        def get_vlaue(g, d, minmax):
+        def get_value(g, d, minmax):
             if self.time_left() < self.TIMER_THRESHOLD:
                 raise SearchTimeout()
 
             # Determine whether the search reaches the depth limit or the terminal state
             local_moves = g.get_legal_moves()
-            if d == 0 or not local_moves :
-                return self.score(g, g._player_1)
+            if not local_moves or d == 0 :
+                return self.score(g, self)
+
+            print(d)
 
             # Find the max/min value based on the minmax parameter or raise an error for invalid parameter
             if minmax == 'min':
-                return min([get_vlaue(g.forecast_move(move), d - 1, 'max') for move in local_moves] + [float('inf')])
+                return min([get_value(g.forecast_move(move), d - 1, 'max') for move in local_moves] + [float('inf')])
             elif minmax == 'max':
-                return max([get_vlaue(g.forecast_move(move), d - 1, 'min') for move in local_moves] + [float('-inf')])
+                return max([get_value(g.forecast_move(move), d - 1, 'min') for move in local_moves] + [float('-inf')])
             else:
                 raise ValueError('invalid min/max parameter value')
+
 
         # return the best move
         legal_moves = game.get_legal_moves()
         if not legal_moves:
             return (-1, -1)
         else:
-            idx = numpy.argmax([get_vlaue(game.forecast_move(move), depth, 'min') for move in legal_moves])
+            idx = numpy.argmax([get_value(game.forecast_move(move), depth, 'min') for move in legal_moves])
             return legal_moves[idx]
+
 
 class AlphaBetaPlayer(IsolationPlayer):
     """Game-playing agent that chooses a move using iterative deepening minimax
@@ -278,8 +287,22 @@ class AlphaBetaPlayer(IsolationPlayer):
         """
         self.time_left = time_left
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        # Initialize the best move so that this function returns something
+        # in case the search fails due to timeout
+        best_move = (-1, -1)
+
+        try:
+            # The try/except block will automatically catch the exception
+            # raised when the timer is about to expire.
+            d = 0
+            while True:
+                best_move = self.alphabeta(game, d)
+                d = d + 1
+        except SearchTimeout:
+            return best_move  # return the last move if timeout
+
+        # Return the best move from the last completed search iteration
+        return best_move
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf")):
         """Implement depth-limited minimax search with alpha-beta pruning as
@@ -338,15 +361,15 @@ class AlphaBetaPlayer(IsolationPlayer):
 
             # Check whether the game state is terminal, i.e. no legal_moves
             local_moves = g.get_legal_moves()
-            if d == 0 or not local_moves:
-                return self.score(g, g._player_1)
+            if not local_moves or d == 0:
+                return self.score(g, self)
 
             # Return the alpha/beta value based on the alpha/beta index minmax
             if minmax == 'min':
                 v = float('inf')
                 for move in local_moves:
                     v = min(v, ab_value(g.forecast_move(move), a, b, d - 1, 'max'))
-                    if v < a :
+                    if v <= a :
                         return v
                     b = min(v,b)
                 return v
@@ -354,17 +377,17 @@ class AlphaBetaPlayer(IsolationPlayer):
                 v = float('-inf')
                 for move in local_moves:
                     v = max(v, ab_value(g.forecast_move(move), a, b, d - 1, 'min'))
-                    if v > b :
+                    if v >= b :
                         return v
                     a = max(v,a)
                 return v
             else:
                 raise ValueError('Invalid alpha/beta index parameter value')
 
-        # Call the ab_value function
+        # return the best move
         legal_moves = game.get_legal_moves()
         if not legal_moves:
             return (-1, -1)
         else:
-            idx = numpy.argmax([ab_vlaue(game.forecast_move(move), alpha, beta, depth, 'min') for move in legal_moves])
+            idx = numpy.argmax([ab_value(game.forecast_move(move), alpha, beta, depth, 'max') for move in legal_moves])
             return legal_moves[idx]
