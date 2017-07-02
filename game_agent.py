@@ -37,7 +37,12 @@ def custom_score(game, player):
         The heuristic value of the current game state to the specified player.
     """
     # TODO: finish this function!
-    raise NotImplementedError
+    legal_moves = game.get_legal_moves(player)
+    opp_moves = game.get_legal_moves(game.get_opponent(player))
+    if not legal_moves:
+        return float("inf") if game.is_winner(player) else float("-inf")
+    else :
+        return len(legal_moves) - len(opp_moves) * 1.5
 
 
 def custom_score_2(game, player):
@@ -63,7 +68,12 @@ def custom_score_2(game, player):
         The heuristic value of the current game state to the specified player.
     """
     # TODO: finish this function!
-    raise NotImplementedError
+    legal_moves = game.get_legal_moves(player)
+    opp_moves = game.get_legal_moves(game.get_opponent(player))
+    if not legal_moves:
+        return float("inf") if game.is_winner(player) else float("-inf")
+    else :
+        return len(legal_moves) - len(opp_moves) * 0.5
 
 
 def custom_score_3(game, player):
@@ -89,7 +99,12 @@ def custom_score_3(game, player):
         The heuristic value of the current game state to the specified player.
     """
     # TODO: finish this function!
-    raise NotImplementedError
+    legal_moves = game.get_legal_moves(player)
+    opp_moves = game.get_legal_moves(game.get_opponent(player))
+    if not legal_moves:
+        return float("inf") if game.is_winner(player) else float("-inf")
+    else :
+        return len(legal_moves) - len(opp_moves) * 1.0
 
 
 class IsolationPlayer:
@@ -167,7 +182,7 @@ class MinimaxPlayer(IsolationPlayer):
             return self.minimax(game, self.search_depth)
 
         except SearchTimeout:
-            pass  # Handle any actions required after timeout as needed
+            print('time out!')  # Handle any actions required after timeout as needed
 
         # Return the best move from the last completed search iteration
         return best_move
@@ -214,9 +229,6 @@ class MinimaxPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        # logger = logging.getLogger('tcpserver')
-        # logger.warning('depth: %s', depth.search_depth)
-        print(depth)
 
         # Parameters: game g, current depth quota d and minimax index minmax
         # return min/max value of current state
@@ -226,22 +238,29 @@ class MinimaxPlayer(IsolationPlayer):
 
             # Determine whether the search reaches the depth limit or the terminal state
             local_moves = g.get_legal_moves()
-            if not local_moves or d == 0 :
+            if not local_moves or d == 1 :
                 return self.score(g, self)
 
-            print(d)
+            # reduce the depth quota
+            # if d == 2 :
+            #     print('depth now: ', d, 'moves: ', len(local_moves))
 
             # Find the max/min value based on the minmax parameter or raise an error for invalid parameter
             if minmax == 'min':
-                return min([get_value(g.forecast_move(move), d - 1, 'max') for move in local_moves] + [float('inf')])
+                return min([get_value(g.forecast_move(move), d - 1, 'max') for move in local_moves])
             elif minmax == 'max':
-                return max([get_value(g.forecast_move(move), d - 1, 'min') for move in local_moves] + [float('-inf')])
+                return max([get_value(g.forecast_move(move), d - 1, 'min') for move in local_moves])
             else:
                 raise ValueError('invalid min/max parameter value')
 
 
         # return the best move
         legal_moves = game.get_legal_moves()
+
+        # logger = logging.getLogger('minimaxPlayer')
+        # logger.warning('depth: %s', depth.search_depth)
+        # print('total depth: ', depth, 'Total moves : ', len(legal_moves))
+
         if not legal_moves:
             return (-1, -1)
         else:
@@ -361,7 +380,7 @@ class AlphaBetaPlayer(IsolationPlayer):
 
             # Check whether the game state is terminal, i.e. no legal_moves
             local_moves = g.get_legal_moves()
-            if not local_moves or d == 0:
+            if not local_moves or d == 1:
                 return self.score(g, self)
 
             # Return the alpha/beta value based on the alpha/beta index minmax
@@ -386,8 +405,19 @@ class AlphaBetaPlayer(IsolationPlayer):
 
         # return the best move
         legal_moves = game.get_legal_moves()
+        next_move = (-1, -1)
         if not legal_moves:
-            return (-1, -1)
+            return next_move
         else:
-            idx = numpy.argmax([ab_value(game.forecast_move(move), alpha, beta, depth, 'max') for move in legal_moves])
-            return legal_moves[idx]
+            max_v = float('-inf')
+            for move in legal_moves:
+                v = ab_value(game.forecast_move(move), alpha, beta, depth, 'min')
+                if max_v < v :
+                    next_move = move
+                    max_v = v
+                if v >= beta :
+                    return next_move
+                alpha = max(max_v,alpha)
+            return next_move
+            # idx = numpy.argmax([ab_value(game.forecast_move(move), alpha, beta, depth, 'max') for move in legal_moves])
+            # return legal_moves[idx]

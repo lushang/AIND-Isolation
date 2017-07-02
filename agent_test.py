@@ -17,7 +17,7 @@ class IsolationTest(unittest.TestCase):
 
     def setUp(self):
         reload(game_agent)
-        self.player1 = game_agent.MinimaxPlayer()
+        self.player1 = game_agent.AlphaBetaPlayer()
         self.player2 = sample_players.RandomPlayer()
         # self.player1 = "Player1"
         # self.player2 = "Player2"
