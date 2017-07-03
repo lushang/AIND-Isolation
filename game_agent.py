@@ -4,6 +4,7 @@ and include the results in your report.
 """
 import random
 import numpy
+import math
 # import logging
 
 
@@ -36,13 +37,16 @@ def custom_score(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
+    # two factors: 1. the steps gap between two players and 2. the
+    # distance for the center
     legal_moves = game.get_legal_moves(player)
     opp_moves = game.get_legal_moves(game.get_opponent(player))
+    w, h = game.width / 2., game.height / 2.
+    y, x = game.get_player_location(player)
     if not legal_moves:
         return float("inf") if game.is_winner(player) else float("-inf")
     else :
-        return len(legal_moves) - len(opp_moves) * 1.5
+        return len(legal_moves) - len(opp_moves) + math.sqrt((h - y)**2 + (w - x)**2)
 
 
 def custom_score_2(game, player):
@@ -67,13 +71,15 @@ def custom_score_2(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
+    # Combine the evaluation of move steps and distance to the center
     legal_moves = game.get_legal_moves(player)
     opp_moves = game.get_legal_moves(game.get_opponent(player))
+    w, h = game.width / 2., game.height / 2.
+    y, x = game.get_player_location(player)
     if not legal_moves:
         return float("inf") if game.is_winner(player) else float("-inf")
     else :
-        return len(legal_moves) - len(opp_moves) * 0.5
+        return len(legal_moves) - len(opp_moves) + float((h - y)**2 + (w - x)**2)
 
 
 def custom_score_3(game, player):
@@ -98,13 +104,13 @@ def custom_score_3(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
+    # use division the get the gap between the two players
     legal_moves = game.get_legal_moves(player)
     opp_moves = game.get_legal_moves(game.get_opponent(player))
     if not legal_moves:
         return float("inf") if game.is_winner(player) else float("-inf")
     else :
-        return len(legal_moves) - len(opp_moves) * 1.0
+        return len(opp_moves) * -1.0 / len(legal_moves)
 
 
 class IsolationPlayer:
@@ -238,7 +244,7 @@ class MinimaxPlayer(IsolationPlayer):
 
             # Determine whether the search reaches the depth limit or the terminal state
             local_moves = g.get_legal_moves()
-            if not local_moves or d == 1 :
+            if not local_moves or d <= 0 :
                 return self.score(g, self)
 
             # reduce the depth quota
@@ -264,7 +270,7 @@ class MinimaxPlayer(IsolationPlayer):
         if not legal_moves:
             return (-1, -1)
         else:
-            idx = numpy.argmax([get_value(game.forecast_move(move), depth, 'min') for move in legal_moves])
+            idx = numpy.argmax([get_value(game.forecast_move(move), depth - 1, 'min') for move in legal_moves])
             return legal_moves[idx]
 
 
@@ -313,7 +319,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         try:
             # The try/except block will automatically catch the exception
             # raised when the timer is about to expire.
-            d = 0
+            d = 1
             while True:
                 best_move = self.alphabeta(game, d)
                 d = d + 1
@@ -380,7 +386,7 @@ class AlphaBetaPlayer(IsolationPlayer):
 
             # Check whether the game state is terminal, i.e. no legal_moves
             local_moves = g.get_legal_moves()
-            if not local_moves or d == 1:
+            if not local_moves or d <= 0:
                 return self.score(g, self)
 
             # Return the alpha/beta value based on the alpha/beta index minmax
@@ -409,9 +415,10 @@ class AlphaBetaPlayer(IsolationPlayer):
         if not legal_moves:
             return next_move
         else:
+            # Prune from sub-tree
             max_v = float('-inf')
             for move in legal_moves:
-                v = ab_value(game.forecast_move(move), alpha, beta, depth, 'min')
+                v = ab_value(game.forecast_move(move), alpha, beta, depth - 1, 'min')
                 if max_v < v :
                     next_move = move
                     max_v = v
@@ -419,5 +426,3 @@ class AlphaBetaPlayer(IsolationPlayer):
                     return next_move
                 alpha = max(max_v,alpha)
             return next_move
-            # idx = numpy.argmax([ab_value(game.forecast_move(move), alpha, beta, depth, 'max') for move in legal_moves])
-            # return legal_moves[idx]
