@@ -104,7 +104,7 @@ def custom_score_3(game, player):
     if not legal_moves:
         return float("inf") if game.is_winner(player) else float("-inf")
     else :
-        return len(legal_moves) - len(opp_moves) * 1.0
+        return len(legal_moves) * 1.236 - len(opp_moves)
 
 
 class IsolationPlayer:
