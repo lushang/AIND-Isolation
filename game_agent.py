@@ -41,12 +41,10 @@ def custom_score(game, player):
     # distance for the center
     legal_moves = game.get_legal_moves(player)
     opp_moves = game.get_legal_moves(game.get_opponent(player))
-    w, h = game.width / 2., game.height / 2.
-    y, x = game.get_player_location(player)
     if not legal_moves:
         return float("inf") if game.is_winner(player) else float("-inf")
     else :
-        return len(legal_moves) - len(opp_moves) + math.sqrt((h - y)**2 + (w - x)**2)
+        return len(opp_moves) * -1.0 / len(legal_moves)
 
 
 def custom_score_2(game, player):
@@ -74,13 +72,12 @@ def custom_score_2(game, player):
     # Combine the evaluation of move steps and distance to the center
     legal_moves = game.get_legal_moves(player)
     opp_moves = game.get_legal_moves(game.get_opponent(player))
-    w, h = game.width / 2., game.height / 2.
-    y, x = game.get_player_location(player)
     if not legal_moves:
         return float("inf") if game.is_winner(player) else float("-inf")
     else :
-        return len(legal_moves) - len(opp_moves) + float((h - y)**2 + (w - x)**2)
-
+        w, h = game.width / 2., game.height / 2.
+        y, x = game.get_player_location(player)
+        return len(legal_moves) - len(opp_moves) + math.sqrt((h - y)**2 + (w - x)**2)
 
 def custom_score_3(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -110,7 +107,9 @@ def custom_score_3(game, player):
     if not legal_moves:
         return float("inf") if game.is_winner(player) else float("-inf")
     else :
-        return len(opp_moves) * -1.0 / len(legal_moves)
+        w, h = game.width / 2., game.height / 2.
+        y, x = game.get_player_location(player)
+        return len(legal_moves) - len(opp_moves) + float((h - y)**2 + (w - x)**2)
 
 
 class IsolationPlayer:
